@@ -51,5 +51,10 @@ python3 scripts/polymarket.py check
 ## 提交
 
 ```bash
-git add -A && git commit -m "结算 q0001：<结果>"
+git add -A && git commit -m "结算 q0001：<结果>" && git push
+git -C private add -A && git -C private commit -m "结算和复盘"
 ```
+
+第二条命令用于私有题。`private/` 没有改动时它会提示没有可提交的内容，不用处理。
+
+私有题的复盘写在 `private/questions/` 里它自己的文件中。要把私有题的教训写进 `lessons.md`，只写方法上的教训，不带题目内容。

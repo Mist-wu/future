@@ -2,12 +2,19 @@
 """事件题的题库和账本：建题、记概率、结算、查看。
 
 用法：
-  ledger.py new --title "..." --criteria "..." --close 2026-12-31 [--title-zh ...] [--decision ...] [--tags a,b]
+  ledger.py new --title "..." --criteria "..." --close 2026-12-31 [--title-zh ...] [--decision ...] [--tags a,b] [--private]
   ledger.py forecast q0001 ai_blind 0.35 [--mode single|ensemble] [--note ...]
   ledger.py skip q0001                     你跳过盲测
   ledger.py resolve q0001 yes|no|void [--note ...] [--evidence URL]
   ledger.py open                           未结算的题
   ledger.py show q0001                     一道题的全部记录
+  ledger.py decide q0001 "相关决定"        给一道题补上或修改相关决定
+  ledger.py decisions                      按相关决定分组列出预测
+
+公开和私有：
+  公开题的编号是 q0001 这样的，记录在 ledger/ 和 questions/ 里，会推送到公开仓库。
+  加 --private 建的题编号是 p0001 这样的，整道题都记在 private/ 里，只留在本机。
+  “相关决定”不管题目是否公开，一律记在 private/ 里。
 """
 from __future__ import annotations
 
@@ -15,8 +22,8 @@ import argparse
 import re
 import sys
 
-from common import (QUESTIONS, append_jsonl, inv_logit, iso, local, logit, now,
-                    parse_iso, parse_p, pct, read_jsonl)
+from common import (ROOT, append_jsonl, append_private, inv_logit, iso, local, logit, now,
+                    parse_iso, parse_p, pct, read_jsonl, read_private)
 
 SOURCES = ["ai_blind", "ai_informed", "human_blind", "human_final", "market", "mech_avg"]
 SOURCE_ZH = {
@@ -47,6 +54,18 @@ def latest(qid: str, source: str) -> float | None:
     return rows[-1]["p"] if rows else None
 
 
+def is_private(qid: str) -> bool:
+    return bool(questions().get(qid, {}).get("private"))
+
+
+def decisions() -> dict[str, str]:
+    """题目编号 → 相关决定。只存在 private/ 里，后写的覆盖先写的。"""
+    out = {q["qid"]: q["decision"] for q in questions().values() if q.get("decision")}
+    for r in read_private("decisions.jsonl"):
+        out[r["qid"]] = r["decision"]
+    return {k: v for k, v in out.items() if v}
+
+
 def slugify(title: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:40].rstrip("-")
     return slug or "question"
@@ -54,9 +73,11 @@ def slugify(title: str) -> str:
 
 def create_question(*, title: str, criteria: str, close: str, source: str = "manual",
                     title_zh: str = "", decision: str = "", tags: list[str] | None = None,
-                    url: str = "", pm: dict | None = None) -> dict:
-    qid = f"q{len(questions()) + 1:04d}"
+                    url: str = "", pm: dict | None = None, private: bool = False) -> dict:
+    prefix = "p" if private else "q"
+    qid = f"{prefix}{sum(q.startswith(prefix) for q in questions()) + 1:04d}"
     close_dt = parse_iso(close)
+    folder = "private/questions" if private else "questions"
     rec = {
         "qid": qid,
         "source": source,
@@ -64,23 +85,25 @@ def create_question(*, title: str, criteria: str, close: str, source: str = "man
         "title_zh": title_zh,
         "criteria": criteria,
         "close": iso(close_dt),
-        "decision": decision,
         "tags": tags or [],
         "url": url,
-        "file": f"questions/{qid}-{slugify(title)}.md",
+        "file": f"{folder}/{qid}-{slugify(title)}.md",
     }
     if pm:
         rec["pm"] = pm
-    append_jsonl("questions.jsonl", rec)
+    if private:
+        rec["private"] = True
+    append_jsonl("questions.jsonl", rec, private=private)
+    if decision:
+        append_private("decisions.jsonl", {"qid": qid, "decision": decision})
 
-    QUESTIONS.mkdir(exist_ok=True)
     lines = [
         f"# {qid} {title_zh or title}",
         "",
         f"- 来源：{source}",
         f"- 截止：{local(close_dt)}",
     ]
-    if decision:
+    if decision and private:  # 公开题的文件里不写相关决定
         lines.append(f"- 相关决定：{decision}")
     if tags:
         lines.append(f"- 标签：{'、'.join(tags)}")
@@ -88,7 +111,9 @@ def create_question(*, title: str, criteria: str, close: str, source: str = "man
         lines.append(f"- 链接：{url}")
     lines += ["", "## 题目原文", "", title, "", "## 判定标准（原文）", "", criteria.strip(), "",
               "## 判定标准（中文）", "", "（待补）", "", "## 预测记录", "", "## 复盘", ""]
-    (QUESTIONS.parent / rec["file"]).write_text("\n".join(lines), encoding="utf-8")
+    path = ROOT / rec["file"]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines), encoding="utf-8")
     return rec
 
 
@@ -107,14 +132,15 @@ def add_forecast(qid: str, source: str, p: float | None, mode: str = "", note: s
         rec["note"] = note
     if skipped:
         rec["skipped"] = True
-    rec = append_jsonl("forecasts.jsonl", rec)
+    private = is_private(qid)
+    rec = append_jsonl("forecasts.jsonl", rec, private=private)
 
     # 你的盲测值和 AI 盲测值都有了，就自动记一条机械平均（对数几率上各占一半）
     if source in ("ai_blind", "human_blind") and p is not None:
         a, h = latest(qid, "ai_blind"), latest(qid, "human_blind")
         if a is not None and h is not None:
             avg = inv_logit((logit(a) + logit(h)) / 2)
-            append_jsonl("forecasts.jsonl", {"qid": qid, "source": "mech_avg", "p": round(avg, 4)})
+            append_jsonl("forecasts.jsonl", {"qid": qid, "source": "mech_avg", "p": round(avg, 4)}, private=private)
     return rec
 
 
@@ -129,13 +155,15 @@ def add_resolution(qid: str, outcome: str, note: str = "", evidence: str = "",
         rec["note"] = note
     if evidence:
         rec["evidence"] = evidence
-    return append_jsonl("resolutions.jsonl", rec)
+    return append_jsonl("resolutions.jsonl", rec, private=is_private(qid))
 
 
 def cmd_new(a):
     rec = create_question(title=a.title, criteria=a.criteria, close=a.close, title_zh=a.title_zh,
-                          decision=a.decision, tags=[t for t in a.tags.split(",") if t], url=a.url)
-    print(f"已建题 {rec['qid']}：{rec['file']}")
+                          decision=a.decision, tags=[t for t in a.tags.split(",") if t], url=a.url,
+                          private=a.private)
+    where = "私有题，只留在本机" if a.private else "公开题"
+    print(f"已建题 {rec['qid']}（{where}）：{rec['file']}")
 
 
 def cmd_forecast(a):
@@ -165,7 +193,8 @@ def cmd_open(_):
         when = f"还有 {days:.0f} 天" if days >= 0 else f"已过截止 {-days:.0f} 天，待结算"
         have = {r["source"] for r in rows if r["qid"] == q["qid"]}
         marks = " ".join(SOURCE_ZH[s] for s in SOURCES if s in have) or "还没有任何预测"
-        print(f"  {q['qid']}  {local(parse_iso(q['close']), '%m-%d')}（{when}）  {q['title_zh'] or q['title']}")
+        mark = "〔私有〕" if q.get("private") else ""
+        print(f"  {q['qid']}  {local(parse_iso(q['close']), '%m-%d')}（{when}）  {mark}{q['title_zh'] or q['title']}")
         print(f"         已记：{marks}")
 
 
@@ -173,8 +202,8 @@ def cmd_show(a):
     q = questions().get(a.qid) or sys.exit(f"没有这道题：{a.qid}")
     print(f"{q['qid']}  {q['title_zh'] or q['title']}")
     print(f"截止：{local(parse_iso(q['close']))}   文件：{q['file']}")
-    if q.get("decision"):
-        print(f"相关决定：{q['decision']}")
+    if a.qid in decisions():
+        print(f"相关决定：{decisions()[a.qid]}（只存在本机）")
     for r in forecasts(a.qid):
         extra = "（跳过）" if r.get("skipped") else ""
         mode = f" [{r['mode']}]" if r.get("mode") else ""
@@ -182,6 +211,30 @@ def cmd_show(a):
     r = resolutions().get(a.qid)
     if r:
         print(f"结算：{r['outcome']}（{local(parse_iso(r['resolved_at']))}）{r.get('note', '')}")
+
+
+def cmd_decide(a):
+    if a.qid not in questions():
+        sys.exit(f"没有这道题：{a.qid}")
+    append_private("decisions.jsonl", {"qid": a.qid, "decision": a.decision})
+    print(f"已记下 {a.qid} 的相关决定（只存在本机）")
+
+
+def cmd_decisions(_):
+    qs, res = questions(), resolutions()
+    groups: dict[str, list[str]] = {}
+    for qid, d in decisions().items():
+        groups.setdefault(d, []).append(qid)
+    if not groups:
+        print("还没有哪道题标了相关决定。")
+        return
+    for d, qids in groups.items():
+        print(f"【{d}】")
+        for qid in sorted(qids):
+            q = qs[qid]
+            ai = latest(qid, "ai_informed") or latest(qid, "ai_blind")
+            state = f"已结算 {res[qid]['outcome']}" if qid in res else f"截止 {local(parse_iso(q['close']), '%m-%d')}"
+            print(f"  {qid}  AI {pct(ai).strip()}  你 {pct(latest(qid, 'human_final') or latest(qid, 'human_blind')).strip()}  {state}  {q['title_zh'] or q['title']}")
 
 
 def main():
@@ -196,6 +249,7 @@ def main():
     p.add_argument("--decision", default="")
     p.add_argument("--tags", default="")
     p.add_argument("--url", default="")
+    p.add_argument("--private", action="store_true", help="私有题：整道题只留在本机")
     p.set_defaults(fn=cmd_new)
 
     p = sub.add_parser("forecast")
@@ -222,6 +276,13 @@ def main():
     p = sub.add_parser("show")
     p.add_argument("qid")
     p.set_defaults(fn=cmd_show)
+
+    p = sub.add_parser("decide")
+    p.add_argument("qid")
+    p.add_argument("decision")
+    p.set_defaults(fn=cmd_decide)
+
+    sub.add_parser("decisions").set_defaults(fn=cmd_decisions)
 
     a = ap.parse_args()
     a.fn(a)

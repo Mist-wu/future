@@ -24,7 +24,17 @@ python3 scripts/polymarket.py add <市场编号> --title-zh "中文题目" --dec
 python3 scripts/ledger.py new --title "题目" --criteria "判定标准" --close 2026-12-31 --title-zh "中文题目" --decision "相关决定"
 ```
 
-问用户这道题关系到哪个决定，有就填 `--decision`。
+问用户这道题关系到哪个决定，有就填 `--decision`。相关决定只记在本机的 `private/` 里，不进公开仓库。之后要补或者改，用 `python3 scripts/ledger.py decide q0001 "相关决定"`。
+
+**公开题还是私有题**：这个仓库是公开的。题目谈的是公共话题，就建成公开题。题目涉及用户的私事，比如收入、工作、健康、身边的人，建题时加 `--private`：
+
+```bash
+python3 scripts/ledger.py new --private --title "题目" --criteria "判定标准" --close 2026-12-31
+```
+
+私有题的编号以 `p` 开头，题目文件在 `private/questions/`，概率和结算记在 `private/ledger/`。之后的预测、盲测和结算命令和公开题完全一样，脚本按编号自动分流。拿不准是否算私事时，问用户。
+
+公开题的题目文件会被推送。写推理时只写公开信息，用户在对话里提到的持仓、成本价和个人打算不写进去。
 
 ## 五步法
 

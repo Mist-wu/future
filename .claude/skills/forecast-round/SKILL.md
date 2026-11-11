@@ -50,19 +50,29 @@ python3 scripts/polymarket.py candidates
 
 ## 6. 简报和提交
 
-写 `briefs/YYYY-MM-DD.md`，一页以内，内容按这个顺序：
+简报分两份。
+
+公开的一份写 `briefs/YYYY-MM-DD.md`，一页以内，只涉及公开题和市场预测，内容按这个顺序：
 
 1. 这次结算了什么，结果如何。
-2. 当前成绩和样本量。
+2. 当前成绩和样本量，用 `python3 scripts/score.py --public` 的输出。
 3. 新的市场预测：每个资产的五档价格、阈值概率、你的调整和理由。
 4. 事件题里概率变动超过 10 个百分点的，写明原因。
-5. 按“相关决定”分组，列出和每个决定有关的预测。
-6. 建议下次检查的时间和提前检查的条件。
+5. 建议下次检查的时间和提前检查的条件。
 
-然后提交：
+私有的一份写 `private/briefs/YYYY-MM-DD.md`，有内容才写：
+
+1. 私有题的结算和概率变动。
+2. 按“相关决定”分组的预测，用 `python3 scripts/ledger.py decisions` 的输出。
+3. 含私有题的完整成绩，用 `python3 scripts/score.py` 的输出。
+
+然后提交两个仓库，并推送公开仓库：
 
 ```bash
-git add -A && git commit -m "预测记录 YYYY-MM-DD：<一句话概括>"
+git add -A && git commit -m "预测记录 YYYY-MM-DD：<一句话概括>" && git push
+git -C private add -A && git -C private commit -m "预测记录 YYYY-MM-DD"
 ```
+
+`private/` 没有改动时，第二条命令会提示没有可提交的内容，不用处理。
 
 最后在对话里告诉用户建议的下次检查时间。算法见 `market-forecast` 手册的最后一节，再把事件题的截止日算进去。

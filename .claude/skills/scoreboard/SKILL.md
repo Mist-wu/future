@@ -9,7 +9,10 @@ description: 预测工作区的成绩单：运行打分脚本，解释 Brier 分
 python3 scripts/score.py            # 全部
 python3 scripts/score.py events     # 只看事件题
 python3 scripts/score.py market     # 只看市场预测
+python3 scripts/score.py --public   # 只算公开账本
 ```
+
+默认的成绩包含私有题，给用户看时用默认的。要把成绩写进公开简报时用 `--public`，这样别人能用公开账本复算。
 
 把输出原样贴给用户，再用几句话解读。
 

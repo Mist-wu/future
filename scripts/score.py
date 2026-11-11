@@ -5,6 +5,7 @@
   score.py            全部
   score.py events     只看事件题
   score.py market     只看市场预测
+  score.py --public   只算公开账本，写公开简报时用
 
 读法：
   Brier 分数越低越好。永远答 50% 得 0.25，全对得 0。
@@ -17,6 +18,7 @@ import statistics
 import sys
 from collections import defaultdict
 
+import common
 import ledger
 from common import parse_iso, read_jsonl
 from market import LEVELS, SOURCE_ZH as MARKET_ZH, quantile
@@ -155,10 +157,15 @@ def market():
 
 
 def main():
-    what = sys.argv[1] if len(sys.argv) > 1 else "all"
-    if what in ("-h", "--help"):
+    args = sys.argv[1:]
+    if "-h" in args or "--help" in args:
         print(__doc__)
         return
+    if "--public" in args:
+        args.remove("--public")
+        common.INCLUDE_PRIVATE = False
+        print("（只算公开账本）\n")
+    what = args[0] if args else "all"
     if what in ("all", "events"):
         events()
     if what in ("all", "market"):

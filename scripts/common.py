@@ -16,6 +16,8 @@ from pathlib import Path
 ROOT = Path(os.environ.get("FUTURE_ROOT") or Path(__file__).resolve().parent.parent)
 LEDGER = ROOT / "ledger"
 QUESTIONS = ROOT / "questions"
+PRIVATE = ROOT / "private"   # 不进公开仓库：私有题、相关决定、私有简报
+INCLUDE_PRIVATE = True       # score.py --public 会把它关掉，只算公开账本
 
 
 def now() -> datetime:
@@ -38,8 +40,8 @@ def parse_iso(text: str) -> datetime:
     return dt
 
 
-def local(dt: datetime, fmt: str = "%Y-%m-%d %H:%M") -> str:
-    """按本机时区显示。"""
+def local(dt: datetime, fmt: str = "%Y-%m-%d %H:%M %Z") -> str:
+    """按本机时区显示，默认带时区缩写。"""
     return dt.astimezone().strftime(fmt)
 
 
@@ -48,21 +50,42 @@ def config() -> dict:
         return tomllib.load(f)
 
 
-def read_jsonl(name: str) -> list[dict]:
-    path = LEDGER / name
+def _read(path: Path) -> list[dict]:
     if not path.exists():
         return []
     with open(path, encoding="utf-8") as f:
         return [json.loads(line) for line in f if line.strip()]
 
 
-def append_jsonl(name: str, record: dict) -> dict:
-    """账本只追加，不改写。每条记录自动带上写入时间 ts。"""
-    LEDGER.mkdir(exist_ok=True)
+def read_jsonl(name: str) -> list[dict]:
+    """读账本。公开账本和私有账本合在一起，按写入时间排序。"""
+    rows = _read(LEDGER / name)
+    if INCLUDE_PRIVATE:
+        extra = _read(PRIVATE / "ledger" / name)
+        if extra:
+            rows = sorted(rows + extra, key=lambda r: r.get("ts", ""))
+    return rows
+
+
+def _append(path: Path, record: dict) -> dict:
+    path.parent.mkdir(parents=True, exist_ok=True)
     record = {"ts": iso(now()), **record}
-    with open(LEDGER / name, "a", encoding="utf-8") as f:
+    with open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
     return record
+
+
+def append_jsonl(name: str, record: dict, private: bool = False) -> dict:
+    """账本只追加，不改写。每条记录自动带上写入时间 ts。private=True 时写进私有账本。"""
+    return _append((PRIVATE / "ledger" if private else LEDGER) / name, record)
+
+
+def read_private(name: str) -> list[dict]:
+    return _read(PRIVATE / name) if INCLUDE_PRIVATE else []
+
+
+def append_private(name: str, record: dict) -> dict:
+    return _append(PRIVATE / name, record)
 
 
 def http_json(url: str, params: dict | None = None, retries: int = 3):
