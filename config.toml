@@ -1,0 +1,33 @@
+# 预测工作区的可调参数。改完直接生效，不需要重启任何东西。
+
+[polymarket]
+tags = ["crypto", "economy", "fed", "ai", "tech"]  # 候选题的题材
+min_days = 3            # 离截止至少几天
+max_days = 90           # 离截止至多几天
+min_volume = 50000      # 累计成交额下限（美元）
+price_band = [0.05, 0.95]  # 只留市场价在这个区间内的题，价格本身不显示
+per_event = 2           # 同一个事件最多出几道题
+candidates = 10         # 每次给几道候选
+
+[market]
+horizons = [7, 30]      # 预测周期（自然日）
+paths = 20000           # 模拟路径数
+
+# 期末涨跌幅阈值（百分比）。暂定值，等你定了再改。
+[market.thresholds]
+7 = [-10, -5, 5, 10]
+30 = [-20, -10, 10, 20]
+
+[market.symbols.BTCUSDT]
+venue = "spot"
+steps_per_week = 7
+
+[market.symbols.ETHUSDT]
+venue = "spot"
+steps_per_week = 7
+
+[market.symbols.SOXLUSDT]
+venue = "futures"       # Binance U 本位永续合约
+steps_per_week = 5      # 波动率来自美股交易日
+history = "yahoo:SOXL"  # 合约上线时间短，用 ETF 的长历史估波动率
+thresholds = { 7 = [-20, -10, 10, 20], 30 = [-35, -20, 20, 35] }
