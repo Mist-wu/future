@@ -10,9 +10,16 @@
 
 模型：
   统计预测（stat）  日对数收益率先过一个固定参数的 GARCH(1,1) 滤波，得到标准化残差；
-                    再从残差里重新抽样，按当前波动率模拟未来路径。漂移取零。
-  朴素基线（baseline） 漂移为零、波动取历史平均的对数正态分布。
+                    再从残差里重新抽样，按当前波动率模拟未来路径。
+  朴素基线（baseline） 波动取历史平均的对数正态分布。
   AI 调整（ai）     对统计分布做两个动作：中枢平移 drift（百分比），离散程度乘 vol。
+
+  统计预测和朴素基线都让期望价格等于现价，不带方向观点。
+  对数收益率的中枢因此略低于零，波动越大低得越多。
+
+模型版本（记录里的 model 字段，没有这个字段的是 v1）：
+  v1  对数收益率的中枢为零。波动大时期望价格会高于现价，SOXL 的 30 天预测偏高约 20%。
+  v2  期望价格等于现价。自 2026-11-13 起使用。
 
 每条记录都存一个 199 档的对数收益率分位数网格（0.5% 到 99.5%），
 五档价格和阈值概率都从网格算出，打分也用网格。
@@ -31,6 +38,7 @@ from common import append_jsonl, config, http_json, iso, local, now, parse_iso, 
 LEVELS = [round(0.005 * i, 3) for i in range(1, 200)]  # 0.005 … 0.995
 SHOW = [0.05, 0.25, 0.5, 0.75, 0.95]
 ALPHA, BETA = 0.06, 0.92  # GARCH(1,1) 的固定参数，不做拟合
+MODEL = "v2"
 SOURCE_ZH = {"stat": "统计预测", "baseline": "朴素基线", "ai": "AI 调整"}
 
 SPOT = "https://api.binance.com/api/v3"
@@ -101,7 +109,9 @@ def simulate(returns: list[float], checkpoints: list[int], paths: int, seed: str
             if step in marks:
                 out[step].append(total)
     for c in checkpoints:
-        out[c].sort()
+        # 整体平移，使期望价格等于现价：E[exp(R)] = 1
+        shift = math.log(statistics.fmean(math.exp(x) for x in out[c]))
+        out[c] = sorted(x - shift for x in out[c])
     return out
 
 
@@ -111,7 +121,7 @@ def grid_from_samples(sorted_samples: list[float]) -> list[float]:
 
 
 def grid_normal(sigma: float) -> list[float]:
-    nd = statistics.NormalDist(0, sigma)
+    nd = statistics.NormalDist(-sigma * sigma / 2, sigma)  # 均值取 -σ²/2，期望价格等于现价
     return [round(nd.inv_cdf(q), 5) for q in LEVELS]
 
 
@@ -186,7 +196,7 @@ def cmd_forecast(a):
             target = t0 + timedelta(days=h)
             th = thresholds_for(cfg, symbol, h)
             common_fields = {"fid": fid, "symbol": symbol, "venue": sym_cfg["venue"], "horizon_days": h,
-                             "t0": iso(t0), "p0": p0, "target": iso(target)}
+                             "t0": iso(t0), "p0": p0, "target": iso(target), "model": MODEL}
             print(f" {h} 天后（{local(target)} 结算）  编号 {fid}")
             for source, grid in (("stat", grid_from_samples(sims[steps[h]])),
                                  ("baseline", grid_normal(sigma_day * math.sqrt(steps[h])))):
@@ -210,6 +220,7 @@ def cmd_adjust(a):
     th = [float(k.rstrip("%")) for k in stat["probs"]]
     quantiles, probs = summary(grid, stat["p0"], th)
     rec = {k: stat[k] for k in ("fid", "symbol", "venue", "horizon_days", "t0", "p0", "target")}
+    rec["model"] = stat.get("model", "v1")  # AI 调整建立在哪个版本的统计预测上
     rec.update({"source": "ai", "mode": a.mode, "drift_pct": a.drift, "vol_scale": a.vol, "note": a.note,
                 "quantiles": quantiles, "probs": probs, "grid": grid})
     append_jsonl("market_forecasts.jsonl", rec)

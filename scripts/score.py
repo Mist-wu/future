@@ -127,7 +127,7 @@ def market():
         if r["fid"] not in settles:
             continue
         y = math.log(settles[r["fid"]] / r["p0"])
-        key = (r["symbol"], r["horizon_days"], r["source"])
+        key = (r["symbol"], r["horizon_days"], r.get("model", "v1"), r["source"])
         loss[key][r["fid"]] = pinball(r["grid"], y) * 100  # 同一编号有多条 AI 调整时，取最后一条
         g = r["grid"]
         cover[key].append((quantile(g, 0.05) <= y <= quantile(g, 0.95), quantile(g, 0.25) <= y <= quantile(g, 0.75)))
@@ -136,23 +136,24 @@ def market():
             hit = y <= math.log(1 + t / 100) if t < 0 else y >= math.log(1 + t / 100)
             brier[key].append((p - (1 if hit else 0)) ** 2)
 
-    print(f"\n{'资产':<10}{'周期':>4}  {'来源':<6}{'条数':>4}  {'分位数损失':>8}  {'90% 区间命中':>10}  {'50% 区间命中':>10}  {'阈值 Brier':>9}")
+    print(f"\n{'资产':<10}{'周期':>4}  {'模型':<4}{'来源':<6}{'条数':>4}  {'分位数损失':>8}  {'90% 区间命中':>10}  {'50% 区间命中':>10}  {'阈值 Brier':>9}")
     for key in sorted(loss):
-        symbol, h, source = key
+        symbol, h, model, source = key
         n = len(loss[key])
         c90 = statistics.fmean(a for a, _ in cover[key]) * 100
         c50 = statistics.fmean(b for _, b in cover[key]) * 100
         br = statistics.fmean(brier[key]) if brier[key] else float("nan")
-        print(f"{symbol:<10}{h:>3}天  {MARKET_ZH[source]:<6}{n:>4}  {statistics.fmean(loss[key].values()):>9.3f}  {c90:>10.0f}%  {c50:>10.0f}%  {br:>9.3f}  {note_n(n)}")
+        print(f"{symbol:<10}{h:>3}天  {model:<4}{MARKET_ZH[source]:<6}{n:>4}  {statistics.fmean(loss[key].values()):>9.3f}  {c90:>10.0f}%  {c50:>10.0f}%  {br:>9.3f}  {note_n(n)}")
 
     print("\n两两比较（只算双方都有的预测；差值为负表示前者更准）：")
-    for symbol, h in sorted({(k[0], k[1]) for k in loss}):
+    for symbol, h, model in sorted({k[:3] for k in loss}):
         for a, b in (("ai", "stat"), ("stat", "baseline")):
-            la, lb = loss.get((symbol, h, a), {}), loss.get((symbol, h, b), {})
+            la, lb = loss.get((symbol, h, model, a), {}), loss.get((symbol, h, model, b), {})
             common = sorted(set(la) & set(lb))
             if common:
                 diff = statistics.fmean(la[f] - lb[f] for f in common)
-                print(f"  {symbol} {h} 天  {MARKET_ZH[a]} 对 {MARKET_ZH[b]}：{diff:+.3f} {note_n(len(common))}")
+                print(f"  {symbol} {h} 天 {model}  {MARKET_ZH[a]} 对 {MARKET_ZH[b]}：{diff:+.3f} {note_n(len(common))}")
+    print("模型版本：v1 的对数收益率中枢为零，v2 的期望价格等于现价。两个版本的成绩分开算。")
     print("注意：起始时间相近的预测，结算窗口大量重叠，不能当独立样本看。\n")
 
 
