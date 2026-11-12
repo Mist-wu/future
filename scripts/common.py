@@ -1,6 +1,7 @@
 """公共函数：路径、时间、JSONL 账本读写、HTTP、概率换算。"""
 from __future__ import annotations
 
+import gzip
 import json
 import math
 import os
@@ -91,12 +92,16 @@ def append_private(name: str, record: dict) -> dict:
 def http_json(url: str, params: dict | None = None, retries: int = 3):
     if params:
         url += "?" + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    # Polymarket 对较大的分页只返回压缩内容，所以统一声明接受 gzip
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept-Encoding": "gzip"})
     last: Exception | None = None
     for attempt in range(retries):
         try:
             with urllib.request.urlopen(req, timeout=20) as resp:
-                return json.load(resp)
+                body = resp.read()
+                if resp.headers.get("Content-Encoding") == "gzip":
+                    body = gzip.decompress(body)
+                return json.loads(body)
         except urllib.error.HTTPError as e:
             if e.code < 500 and e.code != 429:
                 raise
