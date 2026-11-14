@@ -34,8 +34,8 @@ python3 scripts/market.py forecast BTCUSDT ETHUSDT SOXLUSDT
 
 调整只有两个旋钮：
 
-- `--drift`：分布的中枢整体平移，单位是百分比。
-- `--vol`：离散程度的倍数。1.2 表示区间比统计预测宽 20%。
+- `--drift`：期望价格相对统计预测的变动，单位是百分比。它是纯粹的方向观点。
+- `--vol`：离散程度的倍数。1.2 表示区间比统计预测宽 20%。缩放时脚本会保持期望价格不变，所以收窄或加宽不带方向。
 
 ```bash
 python3 scripts/market.py adjust <编号> --drift -1 --vol 1.15 --note "理由，要具体"

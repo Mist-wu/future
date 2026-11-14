@@ -216,6 +216,11 @@ def find_stat(fid: str) -> dict:
 def cmd_adjust(a):
     stat = find_stat(a.fid)
     shift = math.log(1 + a.drift / 100)
+    if stat.get("model", "v1") != "v1" and a.vol != 1:
+        # v2 起：缩放离散程度时保持期望价格不变，drift 才是纯粹的方向调整
+        before = statistics.fmean(math.exp(g) for g in stat["grid"])
+        after = statistics.fmean(math.exp(a.vol * g) for g in stat["grid"])
+        shift += math.log(before / after)
     grid = [round(shift + a.vol * g, 5) for g in stat["grid"]]
     th = [float(k.rstrip("%")) for k in stat["probs"]]
     quantiles, probs = summary(grid, stat["p0"], th)

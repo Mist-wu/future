@@ -31,4 +31,8 @@ The resolution source for this market will be a consensus of credible reporting.
 4. **反向设想**。如果英伟达年底是第一：财报和指引大超预期，继任者人选让市场放心，同时苹果回调。三件事要一起发生，难度不小，维持 8%。
 5. **概率和触发条件**。概率 8%。会让我明显改判断的消息：财报后英伟达和苹果的市值差距缩到 12% 以内；公布正式的继任者；苹果单独大跌。
 
+### 2026-11-14 复查，无变化
+
+没有触发重估条件。英伟达 11 月 13 日收 162.85，苹果收 356.27，差距没有缩小。继任者还没有公布，英国《金融时报》报道董事会接触了 Arm 的 CEO Rene Haas。财报在 11 月 17 日盘后。来源：[Bloomberg](https://www.bloomberg.com/news/articles/2026-11-13/nvidia-eyes-worst-week-since-trump-tariff-selloff-as-huang-exits)。
+
 ## 复盘

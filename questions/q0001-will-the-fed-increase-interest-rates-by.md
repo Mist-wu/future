@@ -39,4 +39,8 @@ This market may resolve as soon as the FOMC’s statement for their December mee
 4. **反向设想**。如果最后加了 50：最可能是 Warsh 在静默期前公开为 50 铺路，或者非农和 PCE 再次大超预期。这条路径不难想象，所以没有压到 10% 以下。
 5. **概率和触发条件**。概率 12%。会让我明显改判断的消息：Warsh 或两位以上理事公开支持 50；FedWatch 上 50 的概率升过 35% 或跌破 5%；12 月 4 日非农数据。
 
+### 2026-11-14 复查，无变化
+
+没有触发重估条件。主席 Warsh 没有新的公开表态。10 月 PPI 略低于预期，但经济学家认为不足以排除 50 个基点。CME FedWatch 上 50 个基点的概率在 11% 到 12%，没有越过 35% 或 5% 的线。来源：[InvestmentNews](https://investmentnews.com/equities/ppi-still-uncomfortably-high-as-december-rate-hike-looms/269002)。
+
 ## 复盘
