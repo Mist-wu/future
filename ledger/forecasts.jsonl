@@ -7,3 +7,15 @@
 {"ts": "2026-11-14T04:14:02Z", "qid": "q0003", "source": "market", "p": 0.069, "note": "补存：AI 盲测值记于 11-13，11-14 复查后维持不变", "sealed": true}
 {"ts": "2026-11-14T04:14:03Z", "qid": "q0004", "source": "market", "p": 0.09, "note": "补存：AI 盲测值记于 11-13，11-14 复查后维持不变", "sealed": true}
 {"ts": "2026-11-14T04:14:04Z", "qid": "q0005", "source": "market", "p": 0.045, "note": "补存：AI 盲测值记于 11-13，11-14 复查后维持不变", "sealed": true}
+{"ts": "2026-11-14T04:39:55Z", "qid": "q0001", "source": "human_blind", "p": 0.05}
+{"ts": "2026-11-14T04:39:55Z", "qid": "q0001", "source": "mech_avg", "p": 0.0781}
+{"ts": "2026-11-14T04:39:55Z", "qid": "q0004", "source": "human_blind", "p": 0.7}
+{"ts": "2026-11-14T04:39:55Z", "qid": "q0004", "source": "mech_avg", "p": 0.3106}
+{"ts": "2026-11-14T04:39:55Z", "qid": "q0005", "source": "human_blind", "p": 0.2}
+{"ts": "2026-11-14T04:39:55Z", "qid": "q0005", "source": "mech_avg", "p": 0.1029}
+{"ts": "2026-11-14T04:39:56Z", "qid": "q0001", "source": "market", "p": 0.0785}
+{"ts": "2026-11-14T04:39:57Z", "qid": "q0004", "source": "market", "p": 0.095}
+{"ts": "2026-11-14T04:39:58Z", "qid": "q0005", "source": "market", "p": 0.045}
+{"ts": "2026-11-14T04:41:05Z", "qid": "q0001", "source": "ai_informed", "p": 0.09, "mode": "single", "note": "Polymarket 三天里从 12.5% 降到 8%，FedWatch 仍在 11% 到 12%，取两者之间偏市场"}
+{"ts": "2026-11-14T04:41:05Z", "qid": "q0004", "source": "ai_informed", "p": 0.09, "mode": "single", "note": "市场价 9% 到 10%，和盲测值基本一致，略向市场靠"}
+{"ts": "2026-11-14T04:41:05Z", "qid": "q0005", "source": "ai_informed", "p": 0.04, "mode": "single", "note": "BTC 跌到 67,000，模型的触及概率降到 3.7%，市场价 4%"}

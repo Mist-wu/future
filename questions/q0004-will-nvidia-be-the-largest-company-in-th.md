@@ -35,4 +35,11 @@ The resolution source for this market will be a consensus of credible reporting.
 
 没有触发重估条件。英伟达 11 月 13 日收 162.85，苹果收 356.27，差距没有缩小。继任者还没有公布，英国《金融时报》报道董事会接触了 Arm 的 CEO Rene Haas。财报在 11 月 17 日盘后。来源：[Bloomberg](https://www.bloomberg.com/news/articles/2026-11-13/nvidia-eyes-worst-week-since-trump-tariff-selloff-as-huang-exits)。
 
+### 2026-11-14 知情值（单次）
+
+- AI 盲测 8%，封存的市场价 9%（2026-11-14 13:14 JST），揭晓时 10%，用户盲测 70%，机械平均 31%。
+- 知情值 9%。市场价和盲测值只差一两个百分点，没有理由大改，略向市场靠。
+- 用户的盲测值和 AI、市场都差得很远。按 11 月 13 日收盘价，苹果市值比英伟达高约 28%，英伟达要在年底前追平这个差距。这道题是检验“两个盲测值取平均是否更准”的一个好样本。
+- 重估条件不变：财报后两家的市值差距缩到 12% 以内；公布正式的继任者；苹果单独大跌。
+
 ## 复盘

@@ -43,4 +43,10 @@ This market may resolve as soon as the FOMC’s statement for their December mee
 
 没有触发重估条件。主席 Warsh 没有新的公开表态。10 月 PPI 略低于预期，但经济学家认为不足以排除 50 个基点。CME FedWatch 上 50 个基点的概率在 11% 到 12%，没有越过 35% 或 5% 的线。来源：[InvestmentNews](https://investmentnews.com/equities/ppi-still-uncomfortably-high-as-december-rate-hike-looms/269002)。
 
+### 2026-11-14 知情值（单次）
+
+- AI 盲测 12%，封存的市场价 8%（2026-11-14 13:14 JST），用户盲测 5%，机械平均 8%。
+- 知情值 9%。Polymarket 上这一档三天里从约 12.5% 降到 8%，CME FedWatch 仍在 11% 到 12%。两个市场的差距可能来自 FedWatch 的算法假设，也可能是 Polymarket 流动性薄。盲测值当初锚在 FedWatch 上，现在往 Polymarket 靠一些，取 9%。
+- 重估条件不变：Warsh 或两位以上理事公开支持 50；FedWatch 上 50 的概率升过 35% 或跌破 5%；12 月 4 日非农数据。
+
 ## 复盘
