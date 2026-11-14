@@ -15,7 +15,7 @@ python3 scripts/polymarket.py check
 python3 scripts/ledger.py open
 ```
 
-前两条命令会自动结算到期的市场预测和已出结果的 Polymarket 题。第三条列出未结算的题，其中标着“已过截止”的手动题，按 `resolve-review` 手册结算。
+前两条命令会自动结算到期的市场预测和已出结果的 Polymarket 题。市场价还没揭晓的题，第二条命令照样更新市场价，但封存不显示。第三条列出未结算的题，其中标着“已过截止”的手动题，按 `resolve-review` 手册结算。
 
 这一步新结算了事件题，就按 `resolve-review` 手册给每道题写复盘。
 

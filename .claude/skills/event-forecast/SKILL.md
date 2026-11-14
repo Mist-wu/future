@@ -18,6 +18,8 @@ python3 scripts/polymarket.py add <市场编号> --title-zh "中文题目" --dec
 
 这两条命令都不显示价格。入库后打开题目文件，把判定标准译成中文，填进“判定标准（中文）”。原文保留。
 
+价格离关口很近的触及题，可能几个小时内就结算。比如“BTC 本月是否跌到 70,000”，而现价是 71,900。选了这类题，就在当次对话里把盲测两轮都走完。
+
 **用户自己提的问题**：把用户的一句话改写成可结算的题，写明三样东西：截止日期、什么情况算发生、以什么来源为准。改写稿给用户确认后再入库：
 
 ```bash
@@ -59,6 +61,8 @@ python3 scripts/ledger.py new --private --title "题目" --criteria "判定标�
    python3 scripts/ledger.py forecast q0001 ai_blind 0.35 --mode single --note "一句话理由"
    ```
 
+   Polymarket 的题记账时，脚本会同时取一次市场价存进账本，不显示。这样市场价和你的盲测值是同一时刻的，用户晚几天回数也不影响对比。输出里提示没存上时，用 `python3 scripts/polymarket.py seal q0001` 补存。
+
 3. 把题目和判定标准发给用户，请用户回一个概率，或者说“跳过”。多道题可以一次列完。
 
 **第二轮（用户回了数之后）**：
@@ -75,6 +79,8 @@ python3 scripts/ledger.py new --private --title "题目" --criteria "判定标�
    ```bash
    python3 scripts/polymarket.py price q0001
    ```
+
+   这条命令先显示记盲测值时封存的市场价，再取一次当前价并记账。和 AI 盲测值比的是封存的那一个。用户还没给数也没跳过时，命令会拒绝执行。
 
 6. 看过市场价后再想一遍，给出知情值。市场价和你的盲测值差得多时，先想市场可能知道什么你不知道的，再决定往市场靠多少。
 

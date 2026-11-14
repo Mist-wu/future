@@ -7,9 +7,14 @@
   ledger.py skip q0001                     你跳过盲测
   ledger.py resolve q0001 yes|no|void [--note ...] [--evidence URL]
   ledger.py open                           未结算的题
-  ledger.py show q0001                     一道题的全部记录
+  ledger.py show q0001                     一道题的全部记录。用户没给盲测值时，AI 的数会遮住
   ledger.py decide q0001 "相关决定"        给一道题补上或修改相关决定
   ledger.py decisions                      按相关决定分组列出预测
+
+市场价的封存：
+  给 Polymarket 的题记 ai_blind 时，脚本会同时取一次市场价存进账本，但不显示。
+  这样市场价和 AI 盲测值是同一时刻的，用户晚几天回数也不影响对比。
+  用 polymarket.py price 揭晓。揭晓之前，show 不显示封存的数值。
 
 公开和私有：
   公开题的编号是 q0001 这样的，记录在 ledger/ 和 questions/ 里，会推送到公开仓库。
@@ -47,6 +52,11 @@ def resolutions() -> dict[str, dict]:
 def forecasts(qid: str | None = None) -> list[dict]:
     rows = read_jsonl("forecasts.jsonl")
     return [r for r in rows if qid is None or r["qid"] == qid]
+
+
+def market_revealed(qid: str) -> bool:
+    """市场价是否已经揭晓过。封存的记录带 sealed 标记，揭晓时会记一条不带标记的。"""
+    return any(r["source"] == "market" and not r.get("sealed") for r in forecasts(qid))
 
 
 def latest(qid: str, source: str) -> float | None:
@@ -118,7 +128,7 @@ def create_question(*, title: str, criteria: str, close: str, source: str = "man
 
 
 def add_forecast(qid: str, source: str, p: float | None, mode: str = "", note: str = "",
-                 skipped: bool = False) -> dict:
+                 skipped: bool = False, sealed: bool = False) -> dict:
     if qid not in questions():
         sys.exit(f"没有这道题：{qid}")
     if source not in SOURCES:
@@ -132,6 +142,8 @@ def add_forecast(qid: str, source: str, p: float | None, mode: str = "", note: s
         rec["note"] = note
     if skipped:
         rec["skipped"] = True
+    if sealed:
+        rec["sealed"] = True
     private = is_private(qid)
     rec = append_jsonl("forecasts.jsonl", rec, private=private)
 
@@ -169,6 +181,18 @@ def cmd_new(a):
 def cmd_forecast(a):
     rec = add_forecast(a.qid, a.source, parse_p(a.p), a.mode, a.note)
     print(f"已记账：{a.qid} {SOURCE_ZH[a.source]} {pct(rec['p']).strip()}")
+    q = questions()[a.qid]
+    if a.source == "ai_blind" and q["source"] == "polymarket" and not market_revealed(a.qid):
+        # 同一时刻封存市场价，不显示
+        try:
+            import polymarket
+            p = polymarket.current_price(q)
+            if p is None:
+                raise RuntimeError("接口没有返回价格")
+            add_forecast(a.qid, "market", p, sealed=True)
+            print("市场价已同时存下，没有显示。")
+        except Exception as e:  # 取价失败不影响盲测值入账
+            print(f"提醒：市场价没存上（{e}）。稍后用 polymarket.py seal {a.qid} 补存。")
 
 
 def cmd_skip(a):
@@ -204,10 +228,21 @@ def cmd_show(a):
     print(f"截止：{local(parse_iso(q['close']))}   文件：{q['file']}")
     if a.qid in decisions():
         print(f"相关决定：{decisions()[a.qid]}（只存在本机）")
-    for r in forecasts(a.qid):
+    rows = forecasts(a.qid)
+    open_q = a.qid not in resolutions()
+    hide_market = open_q and not market_revealed(a.qid)
+    # 用户还没给盲测值时，AI 的数也先遮住，免得在对话里露出来
+    hide_ai = open_q and not a.all and not any(r["source"] == "human_blind" for r in rows)
+    for r in rows:
         extra = "（跳过）" if r.get("skipped") else ""
         mode = f" [{r['mode']}]" if r.get("mode") else ""
-        print(f"  {local(parse_iso(r['ts']))}  {SOURCE_ZH[r['source']]:<6} {pct(r.get('p'))}{extra}{mode}  {r.get('note', '')}")
+        if r.get("sealed") and hide_market:
+            value, note = "已存，未揭晓", r.get("note", "")
+        elif r["source"] in ("ai_blind", "ai_informed") and hide_ai:
+            value, note = "已记，等用户先给数", ""
+        else:
+            value, note = pct(r.get("p")), r.get("note", "")
+        print(f"  {local(parse_iso(r['ts']))}  {SOURCE_ZH[r['source']]:<6} {value}{extra}{mode}  {note}")
     r = resolutions().get(a.qid)
     if r:
         print(f"结算：{r['outcome']}（{local(parse_iso(r['resolved_at']))}）{r.get('note', '')}")
@@ -275,6 +310,7 @@ def main():
 
     p = sub.add_parser("show")
     p.add_argument("qid")
+    p.add_argument("--all", action="store_true", help="用户还没给盲测值时，也显示 AI 的数")
     p.set_defaults(fn=cmd_show)
 
     p = sub.add_parser("decide")

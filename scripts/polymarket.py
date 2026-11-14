@@ -4,8 +4,13 @@
 用法：
   polymarket.py candidates [--n 10] [--tags crypto,fed]   列候选题，不显示价格
   polymarket.py add MARKET_ID [--title-zh ...] [--decision ...]   入库，不显示价格
-  polymarket.py price q0001      揭晓并记下当前市场价（先写完 AI 盲测值再用）
+  polymarket.py price q0001      揭晓市场价：显示封存的那一次，再记下并显示当前的
+  polymarket.py seal q0001 ...   补存一次市场价，不显示（记 ai_blind 时会自动存，一般用不到）
   polymarket.py check            查所有未结算的 Polymarket 题：已出结果的自动结算，其余更新市场价
+
+揭晓的顺序：
+  price 要求这道题已经有 AI 盲测值，并且用户给过盲测值或者跳过了。
+  揭晓之前，check 更新的市场价同样封存，不显示。
 """
 from __future__ import annotations
 
@@ -54,6 +59,10 @@ def closed_time(m: dict) -> str:
 
 def fetch_market(market_id: str) -> dict:
     return http_json(f"{GAMMA}/markets/{market_id}")
+
+
+def current_price(q: dict) -> float | None:
+    return yes_price(fetch_market(q["pm"]["market_id"]))
 
 
 def cmd_candidates(a):
@@ -133,13 +142,37 @@ def cmd_price(a):
     q = ledger.questions().get(a.qid) or sys.exit(f"没有这道题：{a.qid}")
     if q["source"] != "polymarket":
         sys.exit("这道题不是 Polymarket 的题，没有市场价。")
+    rows = ledger.forecasts(a.qid)
     if ledger.latest(a.qid, "ai_blind") is None and not a.force:
         sys.exit("这道题还没有 AI 盲测值。先记 ai_blind，再揭晓市场价。确实要先看，加 --force。")
-    p = yes_price(fetch_market(q["pm"]["market_id"]))
+    if not any(r["source"] == "human_blind" for r in rows) and not a.force:
+        sys.exit("用户还没有给盲测值，也没有跳过。先记 human_blind 或 skip，再揭晓。确实要先看，加 --force。")
+    sealed = [r for r in rows if r["source"] == "market" and r.get("sealed")]
+    if sealed:  # 只显示最早的一条，它和 AI 盲测值是同一时刻的
+        r = sealed[0]
+        print(f"{a.qid} 封存的市场价（{local(parse_iso(r['ts']))}）：{pct(r['p']).strip()}  {r.get('note', '')}")
+    p = current_price(q)
     if p is None:
-        sys.exit("取不到价格。")
+        sys.exit("取不到当前价格。")
     ledger.add_forecast(a.qid, "market", p)
-    print(f"{a.qid} 市场价（Yes）：{pct(p).strip()}，已记账。")
+    print(f"{a.qid} 当前市场价（Yes）：{pct(p).strip()}，已记账。")
+
+
+def cmd_seal(a):
+    qs = ledger.questions()
+    for qid in a.qids:
+        q = qs.get(qid) or sys.exit(f"没有这道题：{qid}")
+        if q["source"] != "polymarket":
+            print(f"{qid} 不是 Polymarket 的题，没有市场价。")
+        elif ledger.market_revealed(qid):
+            print(f"{qid} 的市场价已经揭晓过，不需要封存。")
+        else:
+            p = current_price(q)
+            if p is None:
+                print(f"{qid} 取不到价格。")
+                continue
+            ledger.add_forecast(qid, "market", p, note=a.note, sealed=True)
+            print(f"{qid} 市场价已存下，没有显示。")
 
 
 def cmd_check(_):
@@ -159,12 +192,18 @@ def cmd_check(_):
             print(f"已结算  {q['qid']} → {outcome}  {name}")
         elif m.get("closed"):
             print(f"待人工  {q['qid']} 已关闭，但结果不是明确的 Yes/No（Yes 价 {p}），请看 {q['url']}")
-        elif ledger.latest(q["qid"], "market") is not None and p is not None:
-            # 市场价已揭晓过的题，顺手更新一条，供时间加权打分用
+        elif p is None:
+            print(f"未出结果 {q['qid']}（取不到市场价）  {name}")
+        elif ledger.market_revealed(q["qid"]):
+            # 已揭晓的题：更新一条并显示，供时间加权打分用
             ledger.add_forecast(q["qid"], "market", p)
             print(f"未出结果 {q['qid']} 市场价 {pct(p).strip()}  {name}")
+        elif ledger.latest(q["qid"], "ai_blind") is not None:
+            # 未揭晓的题：照样更新，但封存不显示
+            ledger.add_forecast(q["qid"], "market", p, sealed=True)
+            print(f"未出结果 {q['qid']}（市场价已更新并封存，未揭晓）  {name}")
         else:
-            print(f"未出结果 {q['qid']}（市场价未揭晓）  {name}")
+            print(f"未出结果 {q['qid']}（还没有 AI 盲测值，市场价未存）  {name}")
 
 
 def main():
@@ -187,6 +226,11 @@ def main():
     p.add_argument("qid")
     p.add_argument("--force", action="store_true")
     p.set_defaults(fn=cmd_price)
+
+    p = sub.add_parser("seal")
+    p.add_argument("qids", nargs="+")
+    p.add_argument("--note", default="")
+    p.set_defaults(fn=cmd_seal)
 
     sub.add_parser("check").set_defaults(fn=cmd_check)
 
