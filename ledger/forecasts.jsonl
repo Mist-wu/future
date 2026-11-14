@@ -19,3 +19,6 @@
 {"ts": "2026-11-14T04:41:05Z", "qid": "q0001", "source": "ai_informed", "p": 0.09, "mode": "single", "note": "Polymarket 三天里从 12.5% 降到 8%，FedWatch 仍在 11% 到 12%，取两者之间偏市场"}
 {"ts": "2026-11-14T04:41:05Z", "qid": "q0004", "source": "ai_informed", "p": 0.09, "mode": "single", "note": "市场价 9% 到 10%，和盲测值基本一致，略向市场靠"}
 {"ts": "2026-11-14T04:41:05Z", "qid": "q0005", "source": "ai_informed", "p": 0.04, "mode": "single", "note": "BTC 跌到 67,000，模型的触及概率降到 3.7%，市场价 4%"}
+{"ts": "2026-11-14T06:49:31Z", "qid": "q0001", "source": "human_final", "p": 0.05, "note": "不改"}
+{"ts": "2026-11-14T06:49:31Z", "qid": "q0004", "source": "human_final", "p": 0.7, "note": "不改"}
+{"ts": "2026-11-14T06:49:31Z", "qid": "q0005", "source": "human_final", "p": 0.2, "note": "不改"}
