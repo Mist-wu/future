@@ -49,4 +49,11 @@ This market may resolve as soon as the FOMC’s statement for their December mee
 - 知情值 9%。Polymarket 上这一档三天里从约 12.5% 降到 8%，CME FedWatch 仍在 11% 到 12%。两个市场的差距可能来自 FedWatch 的算法假设，也可能是 Polymarket 流动性薄。盲测值当初锚在 FedWatch 上，现在往 Polymarket 靠一些，取 9%。
 - 重估条件不变：Warsh 或两位以上理事公开支持 50；FedWatch 上 50 的概率升过 35% 或跌破 5%；12 月 4 日非农数据。
 
+### 2026-11-21 复查，下调到 4%
+
+- 触发了一半：10 月会议纪要显示两位官员提出 12 月可能加 50 个基点，但没有主席 Warsh 或两位以上理事公开支持。CME FedWatch 上 12 月至少加 25 个基点的概率接近 100%，Reuters 11 月 19 日引 FedWatch 称加 50 的概率约 8%。Polymarket 这一档跌到 2%。
+- 知情值从 9% 降到 4%。两个市场仍有分歧，取中间偏 Polymarket。主要剩余风险是 12 月 4 日的非农数据。
+- 来源：[CNBC](https://www.cnbc.com/2026/11/20/warsh-fed-forward-guidance-rate-hikes.html)、[Motley Fool](https://www.fool.com/investing/2026/11/16/theres-now-100-chance-fed-rate-hike-in-december-thats-not-worst-news-for-wall-street/)、[BigGo Finance](https://finance.biggo.com/news/4be16db9-1136-419d-94f0-0255bee6cb32)。
+- 重估条件：12 月 4 日非农数据；Warsh 或两位以上理事公开支持 50。
+
 ## 复盘

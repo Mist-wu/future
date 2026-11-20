@@ -27,3 +27,11 @@
 {"ts": "2026-11-14T06:52:21Z", "qid": "q0003", "source": "market", "p": 0.069}
 {"ts": "2026-11-14T06:52:36Z", "qid": "q0003", "source": "ai_informed", "p": 0.07, "mode": "single", "note": "市场价 7% 和盲测值接近；英伟达和 SOXX 又跌了一些，重算后约 7%"}
 {"ts": "2026-11-14T06:57:50Z", "qid": "q0003", "source": "human_final", "p": 0.2, "note": "不改"}
+{"ts": "2026-11-20T23:46:22Z", "qid": "q0001", "source": "market", "p": 0.018}
+{"ts": "2026-11-20T23:46:22Z", "qid": "q0003", "source": "market", "p": 0.582}
+{"ts": "2026-11-20T23:46:23Z", "qid": "q0004", "source": "market", "p": 0.045}
+{"ts": "2026-11-20T23:46:23Z", "qid": "q0005", "source": "market", "p": 0.0245}
+{"ts": "2026-11-20T23:48:39Z", "qid": "q0003", "source": "ai_informed", "p": 0.57, "mode": "single", "note": "SOXX 11-20 收 123.40 已跌破 40% 线，超微电脑一条按字面成立；还差英伟达收盘跌破 119.62，现价 125.53"}
+{"ts": "2026-11-20T23:48:39Z", "qid": "q0004", "source": "ai_informed", "p": 0.01, "mode": "single", "note": "英伟达 11-20 收 125.53，市值约 3.05 万亿，苹果约 5.07 万亿，要相对多涨约 66%"}
+{"ts": "2026-11-20T23:48:39Z", "qid": "q0005", "source": "ai_informed", "p": 0.01, "mode": "single", "note": "BTC 跌到 59,000，到 95,000 要涨 61%，剩 41 天"}
+{"ts": "2026-11-20T23:48:39Z", "qid": "q0001", "source": "ai_informed", "p": 0.04, "mode": "single", "note": "会议纪要里两位官员提过 50；Reuters 引 FedWatch 约 8%，Polymarket 2%，取中间偏市场"}

@@ -43,4 +43,10 @@ Please note that the outcome of this market depends solely on the price data fro
 - 知情值 4%。BTC 从首次预测时的 71,888 跌到 67,060，到 95,000 要涨 42%，剩 48 天。用同一个模型重算，触及概率从 6.6% 降到 3.7%。市场价 4%，两者一致。
 - 上一次复查因为重估条件只设了上行方向而没有下调，这次补上：BTC 跌破 60,000 时也重估。原有条件不变：BTC 涨过 82,000，或者美联储 12 月没有加息。
 
+### 2026-11-21 复查，下调到 1%
+
+- 触发了重估条件：BTC 跌破 60,000，11 月 21 日早上约 59,000。到 95,000 要涨 61%，剩 41 天。美国现货 BTC ETF 三个交易日流出约 11.3 亿美元。来源：[The Market Periodical](https://themarketperiodical.com/2026/11/20/bitcoin-price-drops-below-62k-as-btc-etfs-see-582m-in-outflows)。
+- 知情值 1%。市场价 2%。
+- 重估条件：BTC 涨过 80,000。
+
 ## 复盘
