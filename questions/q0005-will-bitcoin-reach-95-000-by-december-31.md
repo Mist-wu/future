@@ -49,4 +49,8 @@ Please note that the outcome of this market depends solely on the price data fro
 - 知情值 1%。市场价 2%。
 - 重估条件：BTC 涨过 80,000。
 
+### 2026-11-21 晚间复查，无变化
+
+BTC 当天最低约 55,100，之后回到 60,300 附近，离 80,000 的重估线很远。
+
 ## 复盘

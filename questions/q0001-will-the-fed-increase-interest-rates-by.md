@@ -56,4 +56,8 @@ This market may resolve as soon as the FOMC’s statement for their December mee
 - 来源：[CNBC](https://www.cnbc.com/2026/11/20/warsh-fed-forward-guidance-rate-hikes.html)、[Motley Fool](https://www.fool.com/investing/2026/11/16/theres-now-100-chance-fed-rate-hike-in-december-thats-not-worst-news-for-wall-street/)、[BigGo Finance](https://finance.biggo.com/news/4be16db9-1136-419d-94f0-0255bee6cb32)。
 - 重估条件：12 月 4 日非农数据；Warsh 或两位以上理事公开支持 50。
 
+### 2026-11-21 晚间复查，无变化
+
+没有新的美联储消息。
+
 ## 复盘

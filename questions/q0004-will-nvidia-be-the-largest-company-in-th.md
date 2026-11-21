@@ -48,4 +48,8 @@ The resolution source for this market will be a consensus of credible reporting.
 - 知情值 1%。市场价 4%。
 - 重估条件：英伟达和苹果的市值差距缩到 20% 以内。
 
+### 2026-11-21 晚间复查，无变化
+
+周六美股休市。
+
 ## 复盘
