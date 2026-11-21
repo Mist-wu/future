@@ -5,6 +5,7 @@
   market.py forecast BTCUSDT ETHUSDT       出统计预测和朴素基线，并记账
   market.py adjust FID --drift -1.5 --vol 1.2 --note "理由" [--mode single|ensemble]
                                            记下 AI 调整后的分布
+  market.py implied FID...                 给已有的预测补一条隐含波动基线，用起始时刻的数据
   market.py open                           未到期的预测
   market.py settle                         到期的预测按目标时刻的价格结算
 
@@ -12,9 +13,11 @@
   统计预测（stat）  日对数收益率先过一个固定参数的 GARCH(1,1) 滤波，得到标准化残差；
                     再从残差里重新抽样，按当前波动率模拟未来路径。
   朴素基线（baseline） 波动取历史平均的对数正态分布。
+  隐含波动（implied） 波动取 Deribit 期权的隐含波动率指数 DVOL（起始时刻那一小时的值）的对数正态分布。
+                    它代表期权市场的看法，是统计模型要比的对手。只有 BTC 和 ETH 有。
   AI 调整（ai）     对统计分布做两个动作：中枢平移 drift（百分比），离散程度乘 vol。
 
-  统计预测和朴素基线都让期望价格等于现价，不带方向观点。
+  统计预测、朴素基线和隐含波动都让期望价格等于现价，不带方向观点。
   对数收益率的中枢因此略低于零，波动越大低得越多。
 
 模型版本（记录里的 model 字段，没有这个字段的是 v1）：
@@ -39,9 +42,10 @@ LEVELS = [round(0.005 * i, 3) for i in range(1, 200)]  # 0.005 … 0.995
 SHOW = [0.05, 0.25, 0.5, 0.75, 0.95]
 ALPHA, BETA = 0.06, 0.92  # GARCH(1,1) 的固定参数，不做拟合
 MODEL = "v2"
-SOURCE_ZH = {"stat": "统计预测", "baseline": "朴素基线", "ai": "AI 调整"}
+SOURCE_ZH = {"stat": "统计预测", "baseline": "朴素基线", "implied": "隐含波动", "ai": "AI 调整"}
 
 SPOT = "https://api.binance.com/api/v3"
+DERIBIT = "https://www.deribit.com/api/v2/public"
 FUT = "https://fapi.binance.com/fapi/v1"
 
 
@@ -72,6 +76,29 @@ def daily_closes(symbol: str, sym_cfg: dict) -> list[float]:
     rows = http_json(f"{base(sym_cfg['venue'])}/klines", {"symbol": symbol, "interval": "1d", "limit": 1000})
     now_ms = now().timestamp() * 1000
     return [float(r[4]) for r in rows if r[6] < now_ms]  # r[6] 是收盘时间，去掉没走完的今天
+
+
+def implied_vol(spec: str, ts_ms: int) -> float | None:
+    """起始时刻所在那一小时的 DVOL，年化，小数。spec 形如 "deribit:BTC"。"""
+    venue, currency = spec.split(":")
+    if venue != "deribit":
+        return None
+    data = http_json(f"{DERIBIT}/get_volatility_index_data",
+                     {"currency": currency, "start_timestamp": ts_ms - 3 * 3600_000,
+                      "end_timestamp": ts_ms, "resolution": "3600"})["result"]["data"]
+    rows = [r for r in data if r[0] <= ts_ms]
+    return rows[-1][4] / 100 if rows else None
+
+
+def implied_record(common_fields: dict, spec: str, th: list[float]) -> dict | None:
+    t0_ms = int(parse_iso(common_fields["t0"]).timestamp() * 1000)
+    iv = implied_vol(spec, t0_ms)
+    if iv is None:
+        return None
+    grid = grid_normal(iv * math.sqrt(common_fields["horizon_days"] / 365))  # 期权按自然日计
+    quantiles, probs = summary(grid, common_fields["p0"], th)
+    return {**common_fields, "source": "implied", "iv": round(iv, 4),
+            "quantiles": quantiles, "probs": probs, "grid": grid}
 
 
 def price_at(symbol: str, venue: str, ts_ms: int) -> float | None:
@@ -204,6 +231,13 @@ def cmd_forecast(a):
                 rec = {**common_fields, "source": source, "quantiles": quantiles, "probs": probs, "grid": grid}
                 append_jsonl("market_forecasts.jsonl", rec)
                 print_record(rec)
+            if sym_cfg.get("implied"):
+                rec = implied_record(common_fields, sym_cfg["implied"], th)
+                if rec:
+                    append_jsonl("market_forecasts.jsonl", rec)
+                    print_record(rec)
+                else:
+                    print("  隐含波动  取不到 DVOL，这一条没记")
 
 
 def find_stat(fid: str) -> dict:
@@ -232,6 +266,31 @@ def cmd_adjust(a):
     print(f"{a.fid}  中枢 {a.drift:+g}%，离散程度 ×{a.vol:g}")
     print_record(stat)
     print_record(rec)
+
+
+def cmd_implied(a):
+    cfg = config()["market"]
+    have = {r["fid"] for r in read_jsonl("market_forecasts.jsonl") if r["source"] == "implied"}
+    for fid in a.fids:
+        if fid in have:
+            print(f"{fid} 已经有隐含波动基线，跳过")
+            continue
+        stat = find_stat(fid)
+        spec = cfg["symbols"].get(stat["symbol"], {}).get("implied")
+        if not spec:
+            print(f"{fid}：{stat['symbol']} 没有配置隐含波动来源，跳过")
+            continue
+        common_fields = {k: stat[k] for k in ("fid", "symbol", "venue", "horizon_days", "t0", "p0", "target")}
+        common_fields["model"] = stat.get("model", "v1")
+        th = [float(k.rstrip("%")) for k in stat["probs"]]
+        rec = implied_record(common_fields, spec, th)
+        if rec is None:
+            print(f"{fid}：取不到起始时刻的 DVOL，跳过")
+            continue
+        rec["backfilled"] = iso(now())  # 事后补记，用的是起始时刻已有的数据
+        append_jsonl("market_forecasts.jsonl", rec)
+        print(f"{fid}  DVOL {rec['iv'] * 100:.1f}")
+        print_record(rec)
 
 
 def unsettled() -> list[dict]:
@@ -287,6 +346,10 @@ def main():
     p.add_argument("--note", required=True)
     p.add_argument("--mode", default="single", choices=["single", "ensemble"])
     p.set_defaults(fn=cmd_adjust)
+
+    p = sub.add_parser("implied")
+    p.add_argument("fids", nargs="+")
+    p.set_defaults(fn=cmd_implied)
 
     sub.add_parser("open").set_defaults(fn=cmd_open)
     sub.add_parser("settle").set_defaults(fn=cmd_settle)

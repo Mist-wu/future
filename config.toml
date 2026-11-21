@@ -21,10 +21,12 @@ paths = 20000           # 模拟路径数
 [market.symbols.BTCUSDT]
 venue = "spot"
 steps_per_week = 7
+implied = "deribit:BTC"  # 隐含波动基线：Deribit 的 DVOL 指数
 
 [market.symbols.ETHUSDT]
 venue = "spot"
 steps_per_week = 7
+implied = "deribit:ETH"  # 隐含波动基线：Deribit 的 DVOL 指数
 
 [market.symbols.SOXLUSDT]
 venue = "futures"       # Binance U 本位永续合约

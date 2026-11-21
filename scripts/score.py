@@ -147,7 +147,7 @@ def market():
 
     print("\n两两比较（只算双方都有的预测；差值为负表示前者更准）：")
     for symbol, h, model in sorted({k[:3] for k in loss}):
-        for a, b in (("ai", "stat"), ("stat", "baseline")):
+        for a, b in (("ai", "stat"), ("stat", "baseline"), ("stat", "implied"), ("ai", "implied")):
             la, lb = loss.get((symbol, h, model, a), {}), loss.get((symbol, h, model, b), {})
             common = sorted(set(la) & set(lb))
             if common:
