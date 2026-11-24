@@ -60,4 +60,8 @@ This market may resolve as soon as the FOMC’s statement for their December mee
 
 没有新的美联储消息。
 
+### 2026-11-24 复查，无变化
+
+没有新的美联储官员表态。Polymarket 这一档 3%。12 月 4 日的非农数据还没出。
+
 ## 复盘

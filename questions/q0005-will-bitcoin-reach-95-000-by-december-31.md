@@ -53,4 +53,8 @@ Please note that the outcome of this market depends solely on the price data fro
 
 BTC 当天最低约 55,100，之后回到 60,300 附近，离 80,000 的重估线很远。
 
+### 2026-11-24 复查，无变化
+
+BTC 约 60,200，英伟达大涨当天短暂冲到 64,500 后回落。美国现货 BTC ETF 上周净流出约 17.9 亿美元，连续第四周流出。离 80,000 的重估线很远。
+
 ## 复盘

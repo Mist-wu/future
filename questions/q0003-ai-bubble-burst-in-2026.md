@@ -96,4 +96,14 @@ The primary resolution source will be official information from the respective c
 
 周六美股休市，没有新的收盘价。英伟达周五盘后报 130.01，比收盘高 3.6%，离 119.62 更远了。Polymarket 这道题从 58% 涨到 69%，我没找到对应的新消息，也没找到 Polymarket 对超微电脑那一条的说明。BTC 当天跌到两年来的低点，市场的上涨可能反映的是整体情绪。维持 57%。
 
+### 2026-11-24 重新预测，从 57% 降到 13%
+
+触发了重估条件：英伟达收盘回到 150 以上。
+
+- **发生了什么**。11 月 23 日董事会宣布黄仁勋复任 CEO，英伟达当天涨 31.5%，收 165.05，是 2003 年以来最大的单日涨幅。纳斯达克 100 当天涨约 6.8%，SOXX 收 140.22。董事会的调查还没结束，公司新设了国家安全委员会，并在招首席合规官。来源：[CNN](https://www.cnn.com/2026/11/23/markets/us-stocks-rebound-intl)、[Fortune](https://fortune.com/2026/11/23/wall-street-1-trillion-jensen-huang-nvidia-stock-market-cap/)、[24/7 Wall St.](https://247wallst.com/investing/2026/11/23/nvidia-stock-soars-27-before-the-bell-after-its-board-reinstated-jensen-huang-as-ceo-it-still-needs-50-to-get-back-to-its-record/)。
+- **现状**。SOXX 在 11 月 20 日收盘时已跌过 40% 的线，这一条已经发生过，仍然算数。超微电脑那一条不变。英伟达比高点低 31.0%，要再跌 27.5% 到 119.62。
+- **调整**。11 月 13 日英伟达离这条线的距离差不多（约 28%），当时我给它到年底跌破的概率 9%。现在剩 26 个交易日，时间短了一些，但波动大得多，SEC 调查也还在，我给 15%。超微电脑那一条算数的概率仍按 75%，不算数时还需要另一家腰斩，在英伟达已跌破的情形下约五成。合计 0.15 ×（0.75 + 0.25 × 0.5）≈ 13%。市场价 14%。
+- **反向设想**。如果判了 Yes：SEC 调查有了实质结论，或者复职引出新的治理问题，英伟达把这周的涨幅全部吐回去，再跌一截。上周已经出现过五天跌 25% 的行情，这条路径不算远。
+- **重估条件**：英伟达收盘跌破 140；SEC 调查有了实质进展；Polymarket 对超微电脑那一条给出说明。
+
 ## 复盘
